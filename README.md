@@ -1,2 +1,2 @@
 # BST-implementation
-Binary search implementation in C#
+Binary search tree implementation in C#

@@ -1,25 +1,168 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BinarySearchTree;
-using System.Xml.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Xml;
 
 /*
-* C# Program to Implement Binary Search Tree using Linked List
+Implementation of binary search tree
+Copyright Zameer (http://xameeramir.github.io/)
 */
+
 namespace BinarySearchTree
 {
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            try
+            {
+                ObjectPersistence persister = new ObjectPersistence();
+                const string TreeStoreFile = @"D:\SavedTree.bin";
+
+                #region Construct the tree
+
+                Console.WriteLine("Constructing tree...\t");
+
+                BST bst = new BST();
+                bst.Insert(20);
+                bst.Insert(25);
+                bst.Insert(45);
+                bst.Insert(15);
+                bst.Insert(67);
+                bst.Insert(43);
+                bst.Insert(80);
+                bst.Insert(33);
+                bst.Insert(67);
+                bst.Insert(99);
+                bst.Insert(91);
+
+                #endregion
+
+                #region Traverse the tree
+
+                Console.WriteLine(@"----------------------------------------------------
+Before serialization and de-serialization");
+
+                Console.WriteLine("\nInorder Traversal (Left - Root - Right):");
+                bst.Inorder(bst.GetRoot());
+                Console.WriteLine("\nPreorder Traversal (Root - Left - Right): ");
+                bst.Preorder(bst.GetRoot());
+                Console.WriteLine("\nPostorder Traversal (Left - Right - Root): ");
+                bst.Postorder(bst.GetRoot());
+
+                #endregion
+
+                #region Serialize and de-serialize the tree to and from a file
+
+                Console.WriteLine(@"
+----------------------------------------------------
+Storing (serializing) tree to file...");
+
+                persister.StoreBSTToFile(bst, TreeStoreFile);
+
+                Console.WriteLine(string.Format("Tree saved to {0} in binary format\nDe-serializing in process...\t", TreeStoreFile));
+
+                bst = persister.ReadBSTFromFile(TreeStoreFile);
+
+                Console.WriteLine("\nAfter serialization and de-serialization");
+
+                Console.WriteLine("\nInorder Traversal (Left - Root - Right):");
+                bst.Inorder(bst.GetRoot());
+                Console.WriteLine("\nPreorder Traversal (Root - Left - Right): ");
+                bst.Preorder(bst.GetRoot());
+                Console.WriteLine("\nPostorder Traversal (Left - Right - Root): ");
+                bst.Postorder(bst.GetRoot());
+
+                #endregion
+
+                #region Finding maximum, minimum and size of BST
+
+                Console.WriteLine(@"
+----------------------------------------------------
+Other details of the tree");
+
+                Console.WriteLine("Minimum value in the tree: " + bst.GetMinimum(bst.GetRoot()));
+
+                Console.WriteLine("Maximum value in the tree: " + bst.GetMaximum(bst.GetRoot()));
+
+                Console.WriteLine("Size of the tree: " + bst.GetSize(bst.GetRoot()));
+
+                #endregion
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Oops!\n" + ex.Message);
+            }
+
+            //Keep the console running
+
+            Console.WriteLine("\nPRESS ENTER TO TERMINATE...");
+            Console.ReadLine();
+
+        }
+    }
+
     /// <summary>
-    /// A binary tree Node has a key, possibly left and right child
+    /// Takes care of serialization and de-serialization of a BST
     /// </summary>
-    //The Serializable attribute tells the compiler that everything in the class can be persisted to a file. Because the PropertyChanged event is handled by a Windows Form object, it cannot be serialized. The NonSerialized attribute can be used to mark class members that should not be persisted.
-    [Serializable()]
-    public class Node : System.ComponentModel.INotifyPropertyChanged
+    class ObjectPersistence
+    {
+        /// <summary>
+        /// Stores a BST object to a binary file
+        /// </summary>
+        /// <param name="bst"></param>
+        /// <param name="TreeStoreFile"></param>
+        public void StoreBSTToFile(BST bst, string TreeStoreFile)
+        {
+            try
+            {
+                Stream SerializationFileStream = File.Create(TreeStoreFile);
+                BinaryFormatter serializer = new BinaryFormatter();
+                serializer.Serialize(SerializationFileStream, bst);
+                SerializationFileStream.Close();
+            }
+            catch
+            {
+                throw new Exception("Some error occured while storing tree data to file");
+            }            
+        }
+
+        /// <summary>
+        /// Reads binary data from a file to construct a BST object
+        /// </summary>
+        /// <param name="TreeStoreFile"></param>
+        /// <returns></returns>
+        public BST ReadBSTFromFile(string TreeStoreFile)
+        {
+            try
+            {
+                //Make sure that a file exists
+                if (!File.Exists(TreeStoreFile))
+                {
+                    File.Create(TreeStoreFile);
+                }
+
+                BST bst = new BST();
+                Stream DeserializationFileStream = File.OpenRead(TreeStoreFile);
+                BinaryFormatter deserializer = new BinaryFormatter();
+                bst = (BST)deserializer.Deserialize(DeserializationFileStream);
+                DeserializationFileStream.Close();
+
+                return bst;
+            }
+            catch
+            {
+                throw new Exception("Some error occured while reading tree data from file");
+            }
+        }
+
+    }
+
+    /// <summary>
+    /// A binary search tree Node. Has a key, possibly left and right child
+    /// </summary>
+    [Serializable]
+    class Node : System.ComponentModel.INotifyPropertyChanged
     {
         /// <summary>
         /// The value inside a node
@@ -43,8 +186,11 @@ namespace BinarySearchTree
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
     }
 
-    [Serializable()]
-    public class Tree : System.ComponentModel.INotifyPropertyChanged
+    /// <summary>
+    /// Represents a binary search tree
+    /// </summary>
+    [Serializable]
+    class BST : System.ComponentModel.INotifyPropertyChanged
     {
 
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
@@ -56,7 +202,7 @@ namespace BinarySearchTree
 
         public Node root;
 
-        public Tree()
+        public BST()
         {
             root = null;
         }
@@ -73,11 +219,11 @@ namespace BinarySearchTree
         /// <summary>
         /// Inserts a key into a node
         /// </summary>
-        /// <param name="_key"></param>
-        public void Add(int _key)
+        /// <param name="key">The value to be inserted to a node</param>
+        public void Insert(int key)
         {
             Node newNode = new Node();
-            newNode.key = _key;
+            newNode.key = key;
 
             /*If tree don't have a root, set a new node as root*/
             if (root == null)
@@ -95,7 +241,7 @@ namespace BinarySearchTree
                     parent = current;
 
                     /*Less value on the left side*/
-                    if (_key < current.key)
+                    if (key < current.key)
                     {
                         current = current.leftc;
                         if (current == null)
@@ -221,104 +367,5 @@ namespace BinarySearchTree
         }
 
 
-    }
-
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            const string FileName = @"D:\SavedTree.bin";
-
-            #region Construct the tree
-
-            Tree theTree = new Tree();
-            theTree.Add(20);
-            theTree.Add(25);
-            theTree.Add(45);
-            theTree.Add(15);
-            theTree.Add(67);
-            theTree.Add(43);
-            theTree.Add(80);
-            theTree.Add(33);
-            theTree.Add(67);
-            theTree.Add(99);
-            theTree.Add(91);
-
-            #endregion
-
-            #region Traverse the tree
-
-            Console.WriteLine("Before serialization and de-serialization\n");
-            Console.WriteLine(" ");
-
-            Console.WriteLine("Inorder Traversal (Left - Root - Right):");
-            theTree.Inorder(theTree.GetRoot());
-            Console.WriteLine("\n\n");
-            Console.WriteLine("Preorder Traversal (Root - Left - Right): ");
-            theTree.Preorder(theTree.GetRoot());
-            Console.WriteLine("\n\n");
-            Console.WriteLine("Postorder Traversal (Left - Right - Root): ");
-            theTree.Postorder(theTree.GetRoot());
-            Console.WriteLine("\n\n");
-
-            #endregion
-
-            #region Find maximum, minimum and size of BST
-
-            Console.WriteLine("Maximum ");
-            
-            Console.WriteLine("The minimum value in the BST: " + theTree.GetMinimum(theTree.GetRoot()));
-            Console.WriteLine("\n\n");
-
-            Console.WriteLine("The maximum value in the BST: " + theTree.GetMaximum(theTree.GetRoot()));
-            Console.WriteLine("\n\n");
-
-            Console.WriteLine("The size of the BST: " + theTree.GetSize(theTree.GetRoot()));
-            Console.WriteLine("\n\n");
-
-            #endregion
-
-            #region Serialize and de-serialize the tree to and from a file
-
-            Console.WriteLine("Serializing...");
-            Console.WriteLine("\n\n");
-
-            Stream SerializationFileStream = File.Create(FileName);
-            BinaryFormatter serializer = new BinaryFormatter();
-            serializer.Serialize(SerializationFileStream, theTree);
-            SerializationFileStream.Close();
-
-            Console.WriteLine("De-serializing...");
-            Console.WriteLine("\n\n");
-            if (File.Exists(FileName))
-            {
-                Stream DeserializationFileStream = File.OpenRead(FileName);
-                BinaryFormatter deserializer = new BinaryFormatter();
-                theTree = (Tree)deserializer.Deserialize(DeserializationFileStream);
-                DeserializationFileStream.Close();
-            }
-
-
-            Console.WriteLine("After serialization and de-serialization");
-            Console.WriteLine("\n\n");
-
-            Console.WriteLine("Inorder Traversal (Left - Root - Right):");
-            theTree.Inorder(theTree.GetRoot());
-            Console.WriteLine("\n\n");
-            Console.WriteLine("Preorder Traversal (Root - Left - Right): ");
-            theTree.Preorder(theTree.GetRoot());
-            Console.WriteLine("\n\n");
-            Console.WriteLine("Postorder Traversal (Left - Right - Root): ");
-            theTree.Postorder(theTree.GetRoot());
-            Console.WriteLine("\n\n");
-
-            #endregion
-
-            //Keep the console running
-
-            Console.WriteLine("Press enter to terminate");
-            Console.ReadLine();
-
-        }
     }
 }

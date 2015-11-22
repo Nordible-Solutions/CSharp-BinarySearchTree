@@ -12,6 +12,8 @@ This repository contains binary search tree implementation in C#.
 
  -  C# (.NET 4.6)
  - Visual studio 2015 community
+ 
+**[Well documented](http://xameeramir.github.io/vs-documentation/)**
 
 &copy; [Zameer](http://xameeramir.github.io/)
  

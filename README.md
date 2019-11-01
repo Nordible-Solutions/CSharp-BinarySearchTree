@@ -1,4 +1,4 @@
-#What is this?
+## What is this?
 This repository contains binary search tree implementation in C#.
 
  - Inorder  traversal
@@ -8,12 +8,12 @@ This repository contains binary search tree implementation in C#.
  - Size of tree
  - Largest and smallest key in the tree
 
-#Technical stack
+## Technical stack
 
  -  C# (.NET 4.6)
  - Visual studio 2015 community
  
 **[Well documented](http://xameeramir.github.io/vs-documentation/)**
 
-&copy; [Zameer](http://xameeramir.github.io/)
+&copy; [nordible](https://nordible.com/)
  
